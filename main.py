@@ -63,7 +63,7 @@ def create_traveler():
             "pesel": new_traveler.pesel,
             "email": new_traveler.email,
             "login": new_traveler.login
-        }), 201  # 201 Created
+        }), 201
     except IntegrityError:
         g.db.rollback()
         return jsonify(
@@ -85,7 +85,6 @@ def get_travelers():
             "email": p.email,
             "login": p.login,
             "age": p.age
-            # Nigdy nie zwracamy hasła!
         } for p in travelers
     ]
     return jsonify(result)
@@ -154,7 +153,7 @@ def get_country_with_cities(country_id):
     return jsonify({
         "id": country.id,
         "name": country.name,
-        "cities": city_list  # Zwracamy listę miast
+        "cities": city_list
     })
 
 
@@ -177,7 +176,7 @@ def create_trip():
 
     new_trip = Trip(
         status=data["status"],
-        traveler=traveler,  # Używamy relacji
+        traveler=traveler,
         evacuation_id=evacuation_id
     )
 
