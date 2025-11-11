@@ -1,7 +1,9 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session, declarative_base
 
-DATABASE_URL = "sqlite:///Broke.db"
+DATABASE_NAME = "Database"
+
+DATABASE_URL = "sqlite:///" + DATABASE_NAME + ".db"
 
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 
