@@ -3,11 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <title>Test API Odyseusz</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
   <h1>Test Odyseusz</h1>
 
-  <h2>Dodaj Travelera</h2>
+  <h2>Dodaj Podróżnego</h2>
   <form id="travelerForm">
     <input type="text" name="pesel" placeholder="PESEL" required>
     <input type="text" name="first_name" placeholder="Imię" required>
@@ -19,7 +20,7 @@
   </form>
   <pre id="travelerResult"></pre>
 
-  <h2>Lista Travelerów</h2>
+  <h2>Lista Podróżnych</h2>
   <button id="getTravelers">Pobierz</button>
   <pre id="travelerList"></pre>
 
@@ -43,7 +44,7 @@
   <button id="getCountryBtn">Pobierz</button>
   <pre id="countryWithCities"></pre>
 
-  <h2>Dodaj Trip</h2>
+  <h2>Dodaj Podróż</h2>
   <form id="tripForm">
     <input type="text" name="status" placeholder="Status" required>
     <input type="text" name="traveler_pesel" placeholder="PESEL podróżnika" required>
@@ -51,92 +52,10 @@
   </form>
   <pre id="tripResult"></pre>
 
-  <h2>Pobierz Tripy Podróżnika</h2>
+  <h2>Pobierz Podróże Podróżnika</h2>
   <input type="text" id="getTripsPesel" placeholder="PESEL">
   <button id="getTripsBtn">Pobierz</button>
   <pre id="tripsList"></pre>
 
-<script>
-const API_BASE = 'http://127.0.0.1:5000';
-
-// Dodaj Travelera
-document.getElementById('travelerForm').onsubmit = async (e) => {
-  e.preventDefault();
-  const data = Object.fromEntries(new FormData(e.target).entries());
-  const res = await fetch(`${API_BASE}/travelers`, {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify(data)
-  });
-  const json = await res.json();
-  document.getElementById('travelerResult').textContent = JSON.stringify(json, null, 2);
-  e.target.reset();
-};
-
-// Pobierz wszystkich Travelerów
-document.getElementById('getTravelers').onclick = async () => {
-  const res = await fetch(`${API_BASE}/travelers`);
-  const json = await res.json();
-  document.getElementById('travelerList').textContent = JSON.stringify(json, null, 2);
-};
-
-// Dodaj Kraj
-document.getElementById('countryForm').onsubmit = async (e) => {
-  e.preventDefault();
-  const data = Object.fromEntries(new FormData(e.target).entries());
-  const res = await fetch(`${API_BASE}/countries`, {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify(data)
-  });
-  const json = await res.json();
-  document.getElementById('countryResult').textContent = JSON.stringify(json, null, 2);
-  e.target.reset();
-};
-
-// Dodaj Miasto
-document.getElementById('cityForm').onsubmit = async (e) => {
-  e.preventDefault();
-  const data = Object.fromEntries(new FormData(e.target).entries());
-  const res = await fetch(`${API_BASE}/cities`, {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify(data)
-  });
-  const json = await res.json();
-  document.getElementById('cityResult').textContent = JSON.stringify(json, null, 2);
-  e.target.reset();
-};
-
-// Pobierz Kraj z Miastami
-document.getElementById('getCountryBtn').onclick = async () => {
-  const id = document.getElementById('getCountryId').value;
-  const res = await fetch(`${API_BASE}/countries/${id}`);
-  const json = await res.json();
-  document.getElementById('countryWithCities').textContent = JSON.stringify(json, null, 2);
-};
-
-// Dodaj Trip
-document.getElementById('tripForm').onsubmit = async (e) => {
-  e.preventDefault();
-  const data = Object.fromEntries(new FormData(e.target).entries());
-  const res = await fetch(`${API_BASE}/trips`, {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify(data)
-  });
-  const json = await res.json();
-  document.getElementById('tripResult').textContent = JSON.stringify(json, null, 2);
-  e.target.reset();
-};
-
-// Pobierz Tripy Podróżnika
-document.getElementById('getTripsBtn').onclick = async () => {
-  const pesel = document.getElementById('getTripsPesel').value;
-  const res = await fetch(`${API_BASE}/travelers/${pesel}/trips`);
-  const json = await res.json();
-  document.getElementById('tripsList').textContent = JSON.stringify(json, null, 2);
-};
-</script>
-</body>
+  <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
 </html>

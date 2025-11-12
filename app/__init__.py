@@ -1,12 +1,16 @@
 from flask import Flask, g
 from app.database.database import SessionLocal, engine, Base
 from sqlalchemy.exc import SQLAlchemyError
+from flask_wtf import CSRFProtect
 
-
+csrf = CSRFProtect()
 
 def create_app():
     print("Initializing Flask application...")
     app = Flask(__name__)
+    app.config['SECRET_KEY'] = 'supersekretnyklucz123'
+
+    csrf.init_app(app)
 
     # Tworzenie tabel (jeśli nie istnieją)
     try:
