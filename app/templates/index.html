@@ -57,5 +57,81 @@
   <button id="getTripsBtn">Pobierz</button>
   <pre id="tripsList"></pre>
 
-  <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const apiBase = "http://localhost:5000"; // zmień jeśli backend działa na innym porcie lub domenie
+
+      // === DODAJ PODRÓŻNEGO ===
+      document.getElementById("travelerForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const formData = Object.fromEntries(new FormData(e.target).entries());
+        const res = await fetch(`${apiBase}/travelers`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData)
+        });
+        document.getElementById("travelerResult").textContent = await res.text();
+      });
+
+      // === POBIERZ LISTĘ PODRÓŻNYCH ===
+      document.getElementById("getTravelers").addEventListener("click", async () => {
+        const res = await fetch(`${apiBase}/travelers`);
+        document.getElementById("travelerList").textContent = await res.text();
+      });
+
+      // === DODAJ KRAJ ===
+      document.getElementById("countryForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const formData = Object.fromEntries(new FormData(e.target).entries());
+        const res = await fetch(`${apiBase}/countries`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData)
+        });
+        document.getElementById("countryResult").textContent = await res.text();
+      });
+
+      // === DODAJ MIASTO ===
+      document.getElementById("cityForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const formData = Object.fromEntries(new FormData(e.target).entries());
+        formData.country_id = parseInt(formData.country_id);
+        const res = await fetch(`${apiBase}/cities`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData)
+        });
+        document.getElementById("cityResult").textContent = await res.text();
+      });
+
+      // === POBIERZ KRAJ Z MIASTAMI ===
+      document.getElementById("getCountryBtn").addEventListener("click", async () => {
+        const id = document.getElementById("getCountryId").value;
+        if (!id) return alert("Podaj ID kraju");
+        const res = await fetch(`${apiBase}/countries/${id}`);
+        document.getElementById("countryWithCities").textContent = await res.text();
+      });
+
+      // === DODAJ PODRÓŻ ===
+      document.getElementById("tripForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const formData = Object.fromEntries(new FormData(e.target).entries());
+        const res = await fetch(`${apiBase}/trips`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData)
+        });
+        document.getElementById("tripResult").textContent = await res.text();
+      });
+
+      // === POBIERZ PODRÓŻE PODRÓŻNIKA ===
+      document.getElementById("getTripsBtn").addEventListener("click", async () => {
+        const pesel = document.getElementById("getTripsPesel").value;
+        if (!pesel) return alert("Podaj PESEL");
+        const res = await fetch(`${apiBase}/travelers/${pesel}/trips`);
+        document.getElementById("tripsList").textContent = await res.text();
+      });
+    });
+  </script>
+</body>
 </html>
