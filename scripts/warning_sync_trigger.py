@@ -13,5 +13,6 @@ def start_polling():
         print(f"[{datetime.now()}] Import status: {success}")
         time.sleep(900) # 15 minut
 
+
 if __name__ == "__main__":
     start_polling()
