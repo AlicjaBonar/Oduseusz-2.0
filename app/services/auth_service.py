@@ -16,8 +16,6 @@ class InvalidCredentialsError(AuthServiceError):
 
 
 class AuthService:
-
-    
     def __init__(self, db: Session):
         self.db = db
         self.traveler_repository = TravelerRepository(db)
@@ -27,11 +25,11 @@ class AuthService:
         if not login or not password:
             raise ValueError("Brak loginu lub hasła")
         
-        # 1. Sprawdzamy podróżnego
+        # Sprawdzamy podróżnego
         user = self.traveler_repository.find_by_login(login)
         role = "traveler"
         
-        # 2. Jeśli nie znaleziono podróżnego, sprawdzamy pracownika
+        # Jeśli nie znaleziono podróżnego, sprawdzamy pracownika
         if not user:
             role = "employee"
             

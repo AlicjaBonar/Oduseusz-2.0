@@ -1,10 +1,8 @@
-# repositories/warning_repository.py
 from app.models import ConsularWarning
 from app.database.database import SessionLocal
 
 class WarningRepository:
     def get_all(self):
-
         with SessionLocal() as session:
             return session.query(ConsularWarning).all()
 
