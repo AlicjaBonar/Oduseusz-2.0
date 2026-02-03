@@ -10,48 +10,33 @@ from app.repositories.city_repository import CityRepository
 
 
 class CountryServiceError(Exception):
-    """Wyjątek bazowy dla błędów w CountryService"""
     pass
 
 
 class CountryAlreadyExistsError(CountryServiceError):
-    """Kraj już istnieje"""
     pass
 
 
 class CountryNotFoundError(CountryServiceError):
-    """Kraj nie został znaleziony"""
     pass
 
 
 class CityServiceError(Exception):
-    """Wyjątek bazowy dla błędów w CityService"""
     pass
 
 
 class CityNotFoundError(CityServiceError):
-    """Miasto nie zostało znalezione"""
     pass
 
 
 class CountryService:
-    """Service do zarządzania logiką biznesową krajów"""
     
     def __init__(self, db: Session):
         self.db = db
         self.repository = CountryRepository(db)
     
     def create_country(self, country_data: Dict) -> Dict:
-        """
-        Utwórz nowy kraj
-        
-        Args:
-            country_data: Słownik z danymi kraju:
-                - name (wymagane)
-        
-        Returns:
-            Dict z danymi utworzonego kraju
-        """
+
         if not country_data or "name" not in country_data:
             raise ValueError("Field 'name' is required")
         
@@ -78,7 +63,6 @@ class CountryService:
             raise CountryServiceError(f"Błąd podczas tworzenia kraju: {str(e)}")
     
     def get_country_by_id(self, country_id: int) -> Optional[Dict]:
-        """Pobierz kraj po ID z miastami"""
         country = self.repository.find_by_id(country_id)
         if not country:
             return None
@@ -90,7 +74,6 @@ class CountryService:
         }
     
     def get_all_countries(self) -> List[Dict]:
-        """Pobierz wszystkie kraje z miastami"""
         countries = self.repository.get_all()
         return [
             {
@@ -103,7 +86,6 @@ class CountryService:
 
 
 class CityService:
-    """Service do zarządzania logiką biznesową miast"""
     
     def __init__(self, db: Session):
         self.db = db
@@ -111,17 +93,7 @@ class CityService:
         self.country_repository = CountryRepository(db)
     
     def create_city(self, city_data: Dict) -> Dict:
-        """
-        Utwórz nowe miasto
-        
-        Args:
-            city_data: Słownik z danymi miasta:
-                - name (wymagane)
-                - country_id (wymagane)
-        
-        Returns:
-            Dict z danymi utworzonego miasta
-        """
+
         if not city_data or "name" not in city_data or "country_id" not in city_data:
             raise ValueError("Fields 'name' and 'country_id' are required")
         
@@ -146,7 +118,6 @@ class CityService:
             raise CityServiceError(f"Błąd podczas tworzenia miasta: {str(e)}")
     
     def get_all_cities(self) -> List[Dict]:
-        """Pobierz wszystkie miasta"""
         cities = self.city_repository.get_all()
         return [
             {

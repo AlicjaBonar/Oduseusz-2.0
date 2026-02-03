@@ -5,7 +5,6 @@ from app.services.auth_service import AuthService, InvalidCredentialsError
 class TestAuthService:
     @pytest.fixture
     def auth_service(self):
-        """Inicjalizacja serwisu z mockiem sesji bazy danych przed każdym testem."""
         self.db_session = MagicMock()
         return AuthService(self.db_session)
 

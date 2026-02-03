@@ -6,9 +6,6 @@ from app.models import Base
 
 @pytest.fixture(scope="function")
 def db_session():
-    """
-    Tworzy tymczasową bazę danych w pamięci RAM dla każdego testu.
-    """
     engine = create_engine("sqlite:///:memory:")
     Base.metadata.create_all(engine)
     TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
