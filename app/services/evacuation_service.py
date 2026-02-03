@@ -70,7 +70,7 @@ class EvacuationService:
     
     def update_evacuation(self, evac_id, data):
         # 1. Pobranie istniejącej ewakuacji
-        evac = self.db.query(Evacuation).get(evac_id)
+        evac = self.db.get(Evacuation, evac_id)
         
         if not evac:
             raise ValueError(f"Ewakuacja o ID {evac_id} nie istnieje.")
@@ -115,7 +115,7 @@ class EvacuationService:
         Usuwa ewakuację z bazy danych na podstawie jej ID.
         """
         # 1. Znalezienie rekordu
-        evac = self.db.query(Evacuation).get(evac_id)
+        evac = self.db.get(Evacuation, evac_id)
         
         if not evac:
             return False  # Zwracamy False, jeśli nie ma co usuwać
