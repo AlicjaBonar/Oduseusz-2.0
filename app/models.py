@@ -178,6 +178,8 @@ class Evacuation(Base):
     country_id = Column(Integer, ForeignKey("countries.id"), nullable=False)
     city_id = Column(Integer, ForeignKey("cities.id"), nullable=True) # null, jeśli ewakuacja całego kraju
 
+    warning_id = Column(Integer, ForeignKey("consular_warnings.id"), nullable=True)
+    warning = relationship("ConsularWarning", back_populates="evacuations")
     def to_dict(self):
         return {
             "id": self.id,
