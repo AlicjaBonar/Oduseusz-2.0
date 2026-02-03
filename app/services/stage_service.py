@@ -1,7 +1,7 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from datetime import datetime
 from typing import Dict, Optional, List
-from app.models import Stage, Trip, Location
+from app.models import Stage, Trip, Location, City
 from app.repositories.stage_repository import StageRepository
 
 
@@ -125,3 +125,14 @@ class StageService:
             "trip_id": stage.trip_id,
             "location_id": stage.location_id
         }
+    
+    def get_trip_details(self, trip_id):
+        # Pobieramy podróż wraz ze wszystkimi powiązanymi danymi za jednym razem
+        return self.db.query(Trip).options(
+            joinedload(Trip.stages)
+                .joinedload(Stage.location)
+                .joinedload(Location.city)
+                .joinedload(City.country),
+            joinedload(Trip.companions),
+            joinedload(Trip.traveler)
+        ).filter(Trip.id == trip_id).first()

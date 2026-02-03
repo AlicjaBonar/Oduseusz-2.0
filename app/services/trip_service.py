@@ -1,7 +1,7 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from datetime import datetime
 from typing import Dict, Optional, List
-from app.models import Trip, Traveler, Stage, Location, Companion, TripStatus
+from app.models import Trip, Traveler, Stage, Location, Companion, TripStatus, City
 from app.repositories.trip_repository import TripRepository
 from app.repositories.traveler_repository import TravelerRepository
 
@@ -24,6 +24,35 @@ class TripService:
         self.db = db
         self.trip_repository = TripRepository(db)
         self.traveler_repository = TravelerRepository(db)
+    
+    def _trip_to_dict(self, trip):
+        return {
+            "id": trip.id,
+            "traveler_pesel": trip.traveler_pesel,
+            "status": trip.status,
+            "companions": [
+                {
+                    "id": c.id, 
+                    "first_name": c.first_name, 
+                    "last_name": c.last_name, 
+                    "pesel": c.pesel
+                } for c in trip.companions
+            ],
+            "stages": [
+                {
+                    "id": s.id,
+                    "start_date": s.start_date.isoformat(),
+                    "end_date": s.end_date.isoformat(),
+                    "address": s.address,  # Upewnij się, że masz to pole
+                    "location_id": s.location_id,
+                    
+                    # KLUCZOWE POPRAWKI:
+                    # Pobieramy ID bezpośrednio z tabeli Location powiązanej z etapem
+                    "city_id": s.location.city_id if s.location else None,
+                    "country_id": s.location.city.country_id if (s.location and s.location.city) else None
+                } for s in trip.stages
+            ]
+        }
     
     def create_trip(self, trip_data: Dict) -> Dict:
         required_fields = ["status", "traveler_pesel"]
@@ -116,7 +145,14 @@ class TripService:
         if not trip:
             return None
         return self._trip_to_dict(trip)
-    
+
+    def get_trip_details(self, trip_id: int):
+        """Pobiera pełne informacje o podróży, etapach i towarzyszach."""
+        trip = self.trip_repository.find_by_id(trip_id)
+        if not trip:
+            return None
+        return self._trip_to_dict(trip)
+
     def get_all_trips(self) -> List[Dict]:
         trips = self.trip_repository.get_all()
         return [self._trip_to_dict(trip) for trip in trips]

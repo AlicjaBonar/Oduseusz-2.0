@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Szczegóły podróży #{{ trip_data.id }}{% endblock %}
+
+{% block head %}
+<style>
+    .details-card { background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+    .status-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 2px solid #f1f2f6; padding-bottom: 15px; }
+    
+    .status-badge { padding: 6px 16px; border-radius: 20px; font-weight: bold; text-transform: uppercase; font-size: 13px; }
+    /* Dynamiczne kolory statusów */
+    .status-planned { background: #e3f2fd; color: #1976d2; }
+    .status-in_progress { background: #e8f5e9; color: #2e7d32; }
+    .status-completed { background: #f5f5f5; color: #616161; }
+    .status-canceled { background: #ffebee; color: #c62828; }
+
+    .section-title { font-size: 18px; font-weight: bold; margin: 25px 0 15px 0; color: #2c3e50; display: flex; align-items: center; gap: 10px; }
+    
+    .timeline { position: relative; padding-left: 20px; border-left: 2px solid #e9ecef; margin-left: 10px; }
+    .timeline-item { position: relative; margin-bottom: 25px; padding-bottom: 10px; }
+    .timeline-item::before { 
+        content: ''; position: absolute; left: -27px; top: 5px; 
+        width: 12px; height: 12px; background: #3498db; border-radius: 50%; border: 3px solid #fff; 
+    }
+
+    .companion-box { display: flex; flex-wrap: wrap; gap: 10px; }
+    .companion-tag { background: #f1f2f6; padding: 8px 15px; border-radius: 8px; font-size: 14px; border: 1px solid #dfe6e9; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="details-card">
+    <div class="status-header">
+        <div>
+            <h2>Podróż #{{ trip_data.id }}</h2>
+            <p style="color: #666; margin: 0;">Główny podróżny (PESEL): <strong>{{ trip_data.traveler_pesel }}</strong></p>
+        </div>
+        <span class="status-badge status-{{ trip_data.status.value }}">{{ trip_data.status.value }}</span>
+    </div>
+
+    <div class="section-title"><i class="fas fa-route"></i> Etapy podróży</div>
+    <div id="stagesTimeline" class="timeline">
+        {% for stage in trip_data.stages %}
+            <div class="timeline-item">
+                <div style="font-weight: bold; color: #3498db; font-size: 14px;">
+                    {{ stage.start_date.strftime('%Y-%m-%d') }} — {{ stage.end_date.strftime('%Y-%m-%d') }}
+                </div>
+                <div style="font-size: 17px; font-weight: 600; margin: 3px 0;">
+                    {# Korzystamy z relacji zdefiniowanych w modelach SQLAlchemy #}
+                    {{ stage.location.city.name }}, {{ stage.location.city.country.name }}
+                </div>
+                <div style="color: #666; font-size: 13px;">
+                    <i class="fas fa-map-pin"></i> {{ stage.location.address }}
+                </div>
+            </div>
+        {% else %}
+            <p style="color: #999;">Brak zaplanowanych etapów.</p>
+        {% endfor %}
+    </div>
+
+    <div class="section-title"><i class="fas fa-users"></i> Osoby towarzyszące</div>
+    <div class="companion-box">
+        {% for companion in trip_data.companions %}
+            <div class="companion-tag">
+                <i class="fas fa-user-friends"></i> {{ companion.first_name }} {{ companion.last_name }} 
+                <span style="color: #888; font-size: 12px;">(PESEL: {{ companion.pesel }})</span>
+            </div>
+        {% else %}
+            <p style="color: #999;">Brak osób towarzyszących w tej podróży.</p>
+        {% endfor %}
+    </div>
+
+    <div style="margin-top: 40px; text-align: center;">
+        <a href="/traveler_dashboard" class="btn-secondary">Powrót do listy</a>
+    </div>
+</div>
+{% endblock %}
