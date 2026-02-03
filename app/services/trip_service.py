@@ -1,7 +1,7 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from datetime import datetime
 from typing import Dict, Optional, List
-from app.models import Trip, Traveler, Stage, Location, Companion, TripStatus
+from app.models import Trip, Traveler, Stage, Location, Companion, TripStatus, City
 from app.repositories.trip_repository import TripRepository
 from app.repositories.traveler_repository import TravelerRepository
 
@@ -25,6 +25,35 @@ class TripService:
         self.trip_repository = TripRepository(db)
         self.traveler_repository = TravelerRepository(db)
     
+    def _trip_to_dict(self, trip):
+        return {
+            "id": trip.id,
+            "traveler_pesel": trip.traveler_pesel,
+            "status": trip.status,
+            "companions": [
+                {
+                    "id": c.id, 
+                    "first_name": c.first_name, 
+                    "last_name": c.last_name, 
+                    "pesel": c.pesel
+                } for c in trip.companions
+            ],
+            "stages": [
+                {
+                    "id": s.id,
+                    "start_date": s.start_date.isoformat(),
+                    "end_date": s.end_date.isoformat(),
+                    "address": s.address,  # Upewnij się, że masz to pole
+                    "location_id": s.location_id,
+                    
+                    # KLUCZOWE POPRAWKI:
+                    # Pobieramy ID bezpośrednio z tabeli Location powiązanej z etapem
+                    "city_id": s.location.city_id if s.location else None,
+                    "country_id": s.location.city.country_id if (s.location and s.location.city) else None
+                } for s in trip.stages
+            ]
+        }
+    
     def create_trip(self, trip_data: Dict) -> Dict:
         required_fields = ["status", "traveler_pesel"]
         missing_fields = [field for field in required_fields if field not in trip_data]
@@ -47,39 +76,67 @@ class TripService:
             status=status_enum,
             traveler=traveler
         )
+        # Zakładam, że repozytorium dodaje obiekt do sesji (self.db.add(trip))
         self.trip_repository.create(trip)
         
+        # Aby mieć trip.id do powiązania etapów, jeśli repozytorium tego nie robi automatycznie:
+        self.db.flush() 
+
         # Dodanie etapów
         stages_data = trip_data.get("stages", [])
         for stage_data in stages_data:
             try:
                 start_date = datetime.fromisoformat(stage_data["start_date"])
                 end_date = datetime.fromisoformat(stage_data["end_date"])
-                location_id = stage_data["location_id"]
-            except (KeyError, ValueError):
+                
+                # NOWA LOGIKA: Pobieramy city_id i address zamiast location_id
+                city_id = stage_data.get("city_id")
+                address = stage_data.get("address")
+                
+                if not city_id or not address:
+                    continue # Lub rzuć błędem walidacji
+
+                # 1. Szukamy czy taka lokalizacja już istnieje w tym mieście
+                location = self.db.query(Location).filter_by(
+                    city_id=city_id, 
+                    address=address
+                ).first()
+
+                # 2. Jeśli nie istnieje, tworzymy nową
+                if not location:
+                    location = Location(
+                        address=address,
+                        city_id=city_id
+                    )
+                    self.db.add(location)
+                    self.db.flush()  # Pobieramy ID nowej lokalizacji przed utworzeniem etapu
+
+                # 3. Tworzymy etap korzystając z id (istniejącego lub nowo utworzonego)
+                stage = Stage(
+                    start_date=start_date,
+                    end_date=end_date,
+                    trip_id=trip.id,
+                    location_id=location.id
+                )
+                self.db.add(stage)
+
+            except (KeyError, ValueError) as e:
+                # Tutaj warto byłoby logować błąd parsowania daty
                 continue
-            
-            location = self.db.query(Location).filter_by(id=location_id).first()
-            if not location:
-                continue
-            
-            stage = Stage(
-                start_date=start_date,
-                end_date=end_date,
-                trip_id=trip.id,
-                location_id=location_id
-            )
-            self.db.add(stage)
         
-        # Dodanie companionów
+        # Dodanie companionów (bez zmian)
         companion_ids = trip_data.get("companions", [])
         for companion_id in companion_ids:
             companion = self.db.query(Companion).filter_by(id=companion_id).first()
             if companion:
                 trip.companions.append(companion)
         
-        self.db.commit()
-        self.db.refresh(trip)
+        try:
+            self.db.commit()
+            self.db.refresh(trip)
+        except Exception as e:
+            self.db.rollback()
+            raise TripServiceError(f"Błąd zapisu podróży: {str(e)}")
         
         return self._trip_to_dict(trip)
     
@@ -88,7 +145,14 @@ class TripService:
         if not trip:
             return None
         return self._trip_to_dict(trip)
-    
+
+    def get_trip_details(self, trip_id: int):
+        """Pobiera pełne informacje o podróży, etapach i towarzyszach."""
+        trip = self.trip_repository.find_by_id(trip_id)
+        if not trip:
+            return None
+        return self._trip_to_dict(trip)
+
     def get_all_trips(self) -> List[Dict]:
         trips = self.trip_repository.get_all()
         return [self._trip_to_dict(trip) for trip in trips]

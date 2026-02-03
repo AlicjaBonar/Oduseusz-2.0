@@ -1,10 +1,12 @@
-from flask import Blueprint, request, jsonify, g
+from flask import Blueprint, request, jsonify, g, render_template
 from app.services.trip_service import (
     TripService,
     TripServiceError,
     TripNotFoundError,
     TravelerNotFoundError
 )
+from datetime import datetime
+from app.models import Trip
 
 trips_bp = Blueprint("trips", __name__)
 
@@ -125,3 +127,14 @@ def add_companions_to_trip(trip_id):
         return jsonify({"error": str(e)}), 500
     except Exception as e:
         return jsonify({"error": f"Unexpected error: {str(e)}"}), 500
+
+@trips_bp.route("/trips/details/<int:trip_id>")
+def view_trip_details(trip_id):
+    # Używamy sesji bezpośrednio, aby dostać obiekt klasy Trip
+    trip = g.db.query(Trip).filter(Trip.id == trip_id).first()
+    
+    if not trip:
+        return render_template("404.html"), 404
+        
+    today = datetime.now().date()
+    return render_template("trip_details.html", trip_data=trip, today=today)
