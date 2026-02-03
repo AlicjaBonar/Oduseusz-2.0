@@ -90,6 +90,8 @@ def evacuation_list():
         service = EvacuationService(g.db)
         evacuations = service.get_all_evacuations()
         
+        service.update_all_evacuation_statuses()
+
         # Formatowanie dat dla wyświetlenia
         for e in evacuations:
             if isinstance(e.get("start_date"), str):

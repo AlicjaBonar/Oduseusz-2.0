@@ -130,3 +130,51 @@ class EvacuationService:
         except Exception as e:
             self.db.rollback()
             raise e
+    
+
+    def update_all_evacuation_statuses(self) -> Dict[str, int]:
+        """
+        Przechodzi przez wszystkie ewakuacje i aktualizuje ich statusy 
+        na podstawie bieżącej daty i godziny.
+        """
+        now = datetime.now()
+        evacuations = self.db.query(Evacuation).all()
+        
+        stats = {"updated": 0, "no_change": 0}
+
+        for evac in evacuations:
+            old_status = evac.status
+            new_status = old_status
+
+            # Ignorujemy ewakuacje, które zostały ręcznie anulowane
+            if old_status == EvacuationStatus.CANCELED:
+                stats["no_change"] += 1
+                continue
+
+            # Logika zmiany statusu:
+            # 1. Jeśli jeszcze się nie zaczęła
+            if now < evac.start_date:
+                new_status = EvacuationStatus.PLANNED
+            
+            # 2. Jeśli trwa (jest po dacie startu i przed datą końca)
+            elif evac.start_date <= now:
+                if evac.end_date is None or now <= evac.end_date:
+                    new_status = EvacuationStatus.IN_PROGRESS
+                else:
+                    # 3. Jeśli data końca minęła
+                    new_status = EvacuationStatus.COMPLETED
+
+            # Aktualizacja, jeśli status uległ zmianie
+            if new_status != old_status:
+                evac.status = new_status
+                stats["updated"] += 1
+            else:
+                stats["no_change"] += 1
+
+        try:
+            if stats["updated"] > 0:
+                self.db.commit()
+            return stats
+        except Exception as e:
+            self.db.rollback()
+            raise EvacuationServiceError(f"Błąd podczas masowej aktualizacji statusów: {str(e)}")
