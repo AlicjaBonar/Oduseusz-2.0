@@ -216,7 +216,7 @@ def send_push_page():
         target_type = request.form.get("target_type")
         target_country = request.form.get("country_name")  # Teraz tu przyjdzie nazwa z listy
 
-        query = db.query(Traveler).filter(Traveler.pref_push == True)
+        query = db.query(Traveler).filter(Traveler.pref_system == True)
 
         if target_type == "country" and target_country:
             today = date.today()

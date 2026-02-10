@@ -157,7 +157,7 @@ class NotificationService:
         return {
             "sms": traveler.pref_sms,
             "email": traveler.pref_email,
-            "push": traveler.pref_push
+            "push": traveler.pref_system
         }
     
     def update_traveler_preferences(self, traveler_pesel: str, preferences: Dict) -> Dict:
@@ -167,7 +167,7 @@ class NotificationService:
         
         traveler.pref_sms = preferences.get("sms", False)
         traveler.pref_email = preferences.get("email", False)
-        traveler.pref_push = preferences.get("push", False)
+        traveler.pref_system = preferences.get("push", False)
         
         self.traveler_repository.update(traveler)
         self.db.commit()

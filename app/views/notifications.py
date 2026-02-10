@@ -23,7 +23,6 @@ def get_all_notifications():
         return jsonify({"error": f"Unexpected error: {str(e)}"}), 500
 
 
-# --- ENDPOINT 1: Admin ogłasza ewakuację (Backend) ---
 @notifications_bp.route('/evacuations', methods=['POST'])
 def create_evacuation():
     data = request.get_json()
@@ -42,7 +41,6 @@ def create_evacuation():
         return jsonify({"error": f"Unexpected error: {str(e)}"}), 500
 
 
-# --- ENDPOINT 2: Podróżny pobiera swoje powiadomienia (API JSON) ---
 @notifications_bp.route('/travelers/<pesel>/notifications', methods=['GET'])
 def get_notifications(pesel):
     try:
@@ -62,7 +60,6 @@ def get_notifications(pesel):
         return jsonify({"error": f"Unexpected error: {str(e)}"}), 500
 
 
-# --- ENDPOINT 3: Dashboard Podróżnego (Widok HTML) ---
 @notifications_bp.route('/dashboard/<id>')
 def traveler_dashboard(id):
     try:
@@ -75,7 +72,6 @@ def traveler_dashboard(id):
         return f"Błąd: {str(e)}", 500
 
 
-# --- ENDPOINT 4: Widok strony powiadomień (Widok HTML) ---
 @notifications_bp.route('/notifications_page')
 @login_required
 def notifications_page():
@@ -85,7 +81,6 @@ def notifications_page():
     return render_template('notifications.html', traveler=traveler)
 
 
-# Zmiana statusu wiadomości na przeczytany
 @notifications_bp.route('/notifications/<int:notification_id>/mark_read', methods=['POST'])
 def mark_notification_read(notification_id):
     try:
